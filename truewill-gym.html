@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7 Weken Kracht</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #c8f135;
+    --accent-dim: #8aaa1f;
+    --text: #e8e8e8;
+    --text-muted: #666;
+    --text-dim: #999;
+    --red: #ff4444;
+    --orange: #ff8c00;
+    --mathieu: #35c8f1;
+    --mathieu-dim: #1f7eaa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── PROFILE SCREEN ── */
+  .profile-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 32px;
+  }
+  .profile-screen.hidden { display: none; }
+  .profile-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .profile-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    margin-bottom: 48px;
+  }
+  .profile-cards {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: 400px;
+  }
+  .profile-card {
+    flex: 1;
+    padding: 28px 16px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .profile-card:hover { transform: translateY(-2px); }
+  .profile-card.gauthier:hover { border-color: var(--accent); }
+  .profile-card.mathieu:hover { border-color: var(--mathieu); }
+  .profile-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 1px;
+  }
+  .profile-card.gauthier .profile-avatar { background: rgba(200,241,53,0.12); color: var(--accent); }
+  .profile-card.mathieu .profile-avatar { background: rgba(53,200,241,0.12); color: var(--mathieu); }
+  .profile-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+  }
+  .profile-card.gauthier .profile-name { color: var(--accent); }
+  .profile-card.mathieu .profile-name { color: var(--mathieu); }
+  .profile-log-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+  .header-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .header-title.mathieu { color: var(--mathieu); }
+  .header-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-top: 1px;
+  }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .week-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(200,241,53,0.08);
+    border: 1px solid rgba(200,241,53,0.2);
+    padding: 4px 10px;
+    border-radius: 2px;
+  }
+  .week-badge.mathieu {
+    color: var(--mathieu);
+    background: rgba(53,200,241,0.08);
+    border-color: rgba(53,200,241,0.2);
+  }
+  .switch-user-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.15s;
+    min-height: 32px;
+  }
+  .switch-user-btn:hover { border-color: #444; color: var(--text); }
+
+  /* ── WEEK NAV ── */
+  .week-nav {
+    display: flex;
+    gap: 4px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .week-nav::-webkit-scrollbar { display: none; }
+  .week-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 2px;
+    white-space: nowrap;
+    transition: all 0.15s;
+    min-height: 44px;
+  }
+  .week-btn:hover { border-color: #444; color: var(--text); }
+  .week-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 500; }
+  .week-btn.active.mathieu { background: var(--mathieu); border-color: var(--mathieu); }
+  .week-btn.has-log { border-color: var(--accent-dim); color: var(--accent-dim); }
+  .week-btn.has-log.mathieu { border-color: var(--mathieu-dim); color: var(--mathieu-dim); }
+
+  /* ── PHASE BANNER ── */
+  .phase-banner {
+    margin: 12px 16px;
+    padding: 12px 16px;
+    border-left: 3px solid var(--accent);
+    background: rgba(200,241,53,0.04);
+  }
+  .phase-banner.mathieu { border-left-color: var(--mathieu); background: rgba(53,200,241,0.04); }
+  .phase-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent-dim);
+    letter-spacing: 2px;
+  }
+  .phase-label.mathieu { color: var(--mathieu-dim); }
+  .phase-desc { font-size: 13px; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
+
+  /* ── SESSION TABS ── */
+  .session-tabs {
+    display: flex;
+    margin: 0 16px 12px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .session-tab {
+    flex: 1;
+    padding: 14px 10px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-right: 1px solid var(--border);
+    text-transform: uppercase;
+    min-height: 48px;
+    position: relative;
+  }
+  .session-tab:last-child { border-right: none; }
+  .session-tab:hover { background: var(--surface); color: var(--text); }
+  .session-tab.active { background: var(--surface2); color: var(--accent); }
+  .session-tab.active.mathieu { color: var(--mathieu); }
+  .session-tab.logged::after {
+    content: '✓';
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 9px;
+    color: var(--accent);
+  }
+  .session-tab.logged.mathieu::after { color: var(--mathieu); }
+
+  /* ── SESSION CONTENT ── */
+  .session-content { padding: 0 16px; }
+
+  /* ── EXERCISE CARD ── */
+  .exercise-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .exercise-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    cursor: pointer;
+    gap: 12px;
+    min-height: 64px;
+  }
+  .exercise-meta { flex: 1; min-width: 0; }
+  .exercise-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1.5px;
+    color: var(--text);
+    line-height: 1;
+  }
+  .exercise-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-top: 3px;
+  }
+  .exercise-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    background: rgba(200,241,53,0.08);
+    border: 1px solid rgba(200,241,53,0.15);
+    padding: 4px 10px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .exercise-badge.mathieu {
+    color: var(--mathieu);
+    background: rgba(53,200,241,0.08);
+    border-color: rgba(53,200,241,0.15);
+  }
+  .exercise-toggle { color: var(--text-muted); font-size: 16px; transition: transform 0.2s; flex-shrink: 0; }
+  .exercise-toggle.open { transform: rotate(180deg); }
+
+  /* ── SETS LOG ── */
+  .sets-log { padding: 0 16px 16px; display: none; }
+  .sets-log.open { display: block; }
+  .sets-grid {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr 48px;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .sets-grid-header {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    padding: 0 0 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .set-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .set-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    padding: 12px 8px;
+    border-radius: 3px;
+    width: 100%;
+    text-align: center;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+    min-height: 48px;
+  }
+  .set-input:focus { outline: none; border-color: var(--accent-dim); background: #1a1a1a; }
+  .set-input.mathieu:focus { border-color: var(--mathieu-dim); }
+  .set-input::placeholder { color: var(--text-muted); }
+  .set-done-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 16px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+  }
+  .set-done-btn.done { background: rgba(200,241,53,0.1); border-color: var(--accent-dim); color: var(--accent); }
+  .set-done-btn.done.mathieu { background: rgba(53,200,241,0.1); border-color: var(--mathieu-dim); color: var(--mathieu); }
+
+  /* ── ALTERNATIVE ── */
+  .alt-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+    transition: color 0.15s;
+    background: none;
+    border-left: none; border-right: none; border-bottom: none;
+    width: 100%;
+    text-align: left;
+    letter-spacing: 1px;
+    min-height: 44px;
+  }
+  .alt-toggle:hover { color: var(--accent-dim); }
+  .alt-content {
+    display: none;
+    background: rgba(255,140,0,0.04);
+    border: 1px solid rgba(255,140,0,0.15);
+    border-radius: 3px;
+    padding: 12px;
+    margin-top: 8px;
+  }
+  .alt-content.open { display: block; }
+  .alt-name { font-family: 'Bebas Neue', sans-serif; font-size: 17px; color: var(--orange); letter-spacing: 1px; }
+  .alt-reason { font-size: 12px; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
+
+  /* ── NOTES ── */
+  .session-notes { margin-top: 8px; margin-bottom: 16px; }
+  .notes-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .notes-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    padding: 12px 14px;
+    border-radius: 3px;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.15s;
+  }
+  .notes-input:focus { outline: none; border-color: var(--accent-dim); }
+  .notes-input.mathieu:focus { border-color: var(--mathieu-dim); }
+  .notes-input::placeholder { color: var(--text-muted); }
+
+  /* ── SAVE BTN ── */
+  .save-btn {
+    width: 100%;
+    padding: 18px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-bottom: 24px;
+    transition: opacity 0.15s, transform 0.1s;
+    min-height: 56px;
+  }
+  .save-btn.mathieu { background: var(--mathieu); }
+  .save-btn:hover { opacity: 0.9; }
+  .save-btn:active { transform: scale(0.99); }
+  .save-btn.saved { background: var(--surface2); color: var(--accent); border: 1px solid var(--accent-dim); }
+  .save-btn.saved.mathieu { color: var(--mathieu); border-color: var(--mathieu-dim); }
+
+  /* ── PROGRESS ── */
+  .progress-bar-wrap { padding: 0 16px 12px; }
+  .progress-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .progress-bar-bg { height: 3px; background: var(--border); border-radius: 2px; }
+  .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
+  .progress-bar-fill.mathieu { background: var(--mathieu); }
+
+  /* ── SECTION DIVIDER ── */
+  .section-divider {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    padding: 0 0 8px;
+    margin-top: 4px;
+  }
+
+  /* ── LOG HISTORY ── */
+  .log-section { padding: 0 16px 24px; margin-top: 8px; }
+  .log-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .log-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .log-entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .log-entry-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent-dim); }
+  .log-entry-date.mathieu { color: var(--mathieu-dim); }
+  .log-entry-session {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+  .log-exercise { font-size: 12px; color: var(--text-dim); margin-bottom: 3px; }
+  .log-exercise strong { color: var(--text); font-size: 13px; }
+  .log-delete { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; padding: 4px 8px; transition: color 0.15s; min-height: 32px; }
+  .log-delete:hover { color: var(--red); }
+  .log-notes-text { font-size: 12px; color: var(--text-dim); font-style: italic; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+  .empty-log { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); text-align: center; padding: 24px; }
+
+  /* ── GITHUB PANEL ── */
+  .github-panel { margin: 0 16px 12px; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .github-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; background: var(--surface); min-height: 44px; }
+  .github-panel-title { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
+  .github-panel-body { display: none; padding: 16px; background: var(--surface); border-top: 1px solid var(--border); }
+  .github-panel-body.open { display: block; }
+  .github-step { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; }
+  .github-step:last-child { margin-bottom: 0; }
+  .github-step-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--accent); line-height: 1; flex-shrink: 0; width: 20px; }
+  .github-step-text { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+  .github-step-text strong { color: var(--text); }
+  .github-step-text code { font-family: 'DM Mono', monospace; font-size: 11px; background: var(--surface2); border: 1px solid var(--border); padding: 1px 6px; border-radius: 2px; color: var(--accent-dim); }
+  .github-note { margin-top: 14px; padding: 10px 12px; background: rgba(200,241,53,0.04); border-left: 2px solid var(--accent-dim); font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 16px;
+    left: 16px;
+    background: var(--accent);
+    color: #000;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 12px 18px;
+    border-radius: 3px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 999;
+    text-align: center;
+  }
+  .toast.mathieu { background: var(--mathieu); }
+  .toast.show { transform: translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- PROFILE SCREEN -->
+<div class="profile-screen" id="profileScreen">
+  <div class="profile-title">7 WEKEN KRACHT</div>
+  <div class="profile-sub">WIE BEN JIJ?</div>
+  <div class="profile-cards">
+    <div class="profile-card gauthier" onclick="selectUser('gauthier')">
+      <div class="profile-avatar">G</div>
+      <div class="profile-name">GAUTHIER</div>
+      <div class="profile-log-count" id="countGauthier">— sessies</div>
+    </div>
+    <div class="profile-card mathieu" onclick="selectUser('mathieu')">
+      <div class="profile-avatar">M</div>
+      <div class="profile-name">MATHIEU</div>
+      <div class="profile-log-count" id="countMathieu">— sessies</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none">
+
+<div class="header">
+  <div>
+    <div class="header-title" id="headerTitle">7 WEKEN KRACHT</div>
+    <div class="header-sub" id="headerSub">FULL BODY 3×/WEEK</div>
+  </div>
+  <div class="header-right">
+    <div class="week-badge" id="currentWeekBadge">WEEK 1</div>
+    <button class="switch-user-btn" onclick="switchUser()">↔ WISSEL</button>
+  </div>
+</div>
+
+<div class="week-nav" id="weekNav"></div>
+
+<div class="github-panel">
+  <div class="github-panel-header" onclick="this.nextElementSibling.classList.toggle('open')">
+    <div class="github-panel-title">▸ HOE HOSTEN OP GITHUB (IPHONE-BOOKMARK)</div>
+    <div style="font-size:11px;color:var(--text-muted)">uitklappen</div>
+  </div>
+  <div class="github-panel-body">
+    <div class="github-step">
+      <div class="github-step-num">1</div>
+      <div class="github-step-text">Ga naar <strong>github.com</strong> en maak een gratis account aan als je er nog geen hebt.</div>
+    </div>
+    <div class="github-step">
+      <div class="github-step-num">2</div>
+      <div class="github-step-text">Klik rechtsboven op <strong>+</strong> → <strong>New repository</strong>. Naam: <code>gym</code>. Zet op <strong>Public</strong>. Vink <strong>Add a README file</strong> aan. Klik <strong>Create repository</strong>.</div>
+    </div>
+    <div class="github-step">
+      <div class="github-step-num">3</div>
+      <div class="github-step-text">Klik op <strong>Add file</strong> → <strong>Upload files</strong>. Sleep <code>truewill-gym.html</code> erin. Klik <strong>Commit changes</strong>.</div>
+    </div>
+    <div class="github-step">
+      <div class="github-step-num">4</div>
+      <div class="github-step-text">Ga naar <strong>Settings</strong> → <strong>Pages</strong>. Onder Branch: selecteer <code>main</code> → <strong>Save</strong>. Wacht 1-2 minuten.</div>
+    </div>
+    <div class="github-step">
+      <div class="github-step-num">5</div>
+      <div class="github-step-text">URL wordt: <code>https://JOUWUSERNAME.github.io/gym/truewill-gym.html</code></div>
+    </div>
+    <div class="github-step">
+      <div class="github-step-num">6</div>
+      <div class="github-step-text"><strong>iPhone:</strong> open URL in Safari → deel-icoon → <strong>Zet op beginscherm</strong>. Beide gebruikers openen dezelfde URL — logs zijn gescheiden per profiel.</div>
+    </div>
+    <div class="github-note">Logs worden opgeslagen in localStorage van Safari op het toestel. Gauthier en Mathieu hebben elk hun eigen gescheiden opslag.</div>
+  </div>
+</div>
+
+<div class="progress-bar-wrap">
+  <div class="progress-bar-label">
+    <span>VOORTGANG</span>
+    <span id="progressLabel">0 / 21 sessies</span>
+  </div>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="phase-banner" id="phaseBanner">
+  <div class="phase-label" id="phaseLabel">FASE</div>
+  <div class="phase-desc" id="phaseDesc"></div>
+</div>
+
+<div class="session-tabs" id="sessionTabs"></div>
+<div class="session-content" id="sessionContent"></div>
+
+<div class="log-section">
+  <div class="log-title" id="logTitle">LOGBOEK</div>
+  <div id="logHistory"></div>
+</div>
+
+</div><!-- end mainApp -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── USERS ──
+const USERS = {
+  gauthier: { name: 'GAUTHIER', key: 'gym_gauthier_v1', color: 'gauthier' },
+  mathieu:  { name: 'MATHIEU',  key: 'gym_mathieu_v1',  color: 'mathieu' }
+};
+let currentUser = null;
+
+// ── DATA ──
+const phases = {
+  1: { label: 'TECHNIEKFASE', desc: 'Week 1-2: Licht gewicht (50-60% van wat je denkt te kunnen). Focus volledig op bewegingspatroon. Verhoog niet voor je de techniek zit.' },
+  2: { label: 'TECHNIEKFASE', desc: 'Week 1-2: Licht gewicht (50-60% van wat je denkt te kunnen). Focus volledig op bewegingspatroon. Verhoog niet voor je de techniek zit.' },
+  3: { label: 'OPBOUWFASE', desc: 'Week 3-4: Gewichten stijgen elke sessie. Lineaire progressie — als je alle reps haalt, gaat het gewicht omhoog. Lower body +2,5-5kg, upper body +1,25-2,5kg.' },
+  4: { label: 'OPBOUWFASE', desc: 'Week 3-4: Gewichten stijgen elke sessie. Lineaire progressie. Lower body +2,5-5kg, upper body +1,25-2,5kg.' },
+  5: { label: 'CONSOLIDATIE', desc: 'Week 5-6: Je zit nu op echte werkgewichten. Progressie vertraagt licht maar blijft lineair. Slaap en eiwitinname (±150g/dag) worden nu bepalend.' },
+  6: { label: 'CONSOLIDATIE', desc: 'Week 5-6: Je zit nu op echte werkgewichten. Slaap en eiwitinname (±150g/dag) worden nu bepalend.' },
+  7: { label: 'TESTWEEK', desc: 'Week 7: Test je 3-rep maxima op squat, bench press en deadlift. Goed opwarmen, voldoende rust tussen pogingen. Dit is je baseline voor de volgende cyclus.' },
+};
+
+const exercises = {
+  compound: {
+    squat:    { name: 'Squat',          type: 'COMPOUND — LOWER',  sets: 3, reps: '5',     alt: { name: 'Goblet Squat',           reason: 'Squat rack bezet of techniek opbouwen. Zware dumbbell of kettlebell, zelfde bewegingspatroon.' }},
+    bench:    { name: 'Bench Press',    type: 'COMPOUND — PUSH',   sets: 3, reps: '5',     alt: { name: 'Dumbbell Bench Press',   reason: 'Barbell bench bezet of meer ROM gewenst. Dumbbells geven ook meer stabilisatiewerk.' }},
+    row:      { name: 'Barbell Row',    type: 'COMPOUND — PULL',   sets: 3, reps: '5',     alt: { name: 'Cable Seated Row',       reason: 'Kabel geeft constante spanning. Grip neutraal (V-bar) of pronated, rug recht.' }},
+    ohp:      { name: 'Overhead Press', type: 'COMPOUND — PUSH',   sets: 3, reps: '5',     alt: { name: 'DB Shoulder Press',      reason: 'Barbell OHP bezet of schoudercomfort is een issue. Meer natuurlijke rotatie.' }},
+    deadlift: { name: 'Deadlift',       type: 'COMPOUND — HINGE',  sets: 1, reps: '5',     alt: { name: 'Romanian Deadlift',      reason: 'Ruimte bezet of hamstrings isoleren. Lichte kniebuiging, gewicht langs de benen.' }},
+  },
+  accessory: {
+    curl:        { name: 'Barbell / DB Curl', type: 'ACCESSOIRE — BICEPS',   sets: 3, reps: '10-12', alt: { name: 'Cable Curl',           reason: 'Constante spanning doorheen de beweging. Elleboog gefixeerd naast het lichaam.' }},
+    tricep:      { name: 'Tricep Pushdown',   type: 'ACCESSOIRE — TRICEPS',  sets: 3, reps: '10-12', alt: { name: 'Skull Crusher (EZ-bar)', reason: 'Meer stretch op de lange kop. Ellebogen naar het plafond, niet uitwaaieren.' }},
+    facepull:    { name: 'Face Pull',          type: 'ACCESSOIRE — REAR DELT',sets: 3, reps: '15',    alt: { name: 'Rear Delt Fly (DB)',    reason: 'Kabel bezet. Romp voorover, dumbbells opzij met lichte elleboogbuiging.' }},
+    core:        { name: 'Plank / Ab Wheel',   type: 'ACCESSOIRE — CORE',    sets: 3, reps: '30-45s / 8-10', alt: { name: 'Hanging Knee Raise', reason: 'Als pull-up bar beschikbaar. Meer ROM dan plank. Knieën gecontroleerd op en neer.' }},
+    lateralraise:{ name: 'Lateral Raise',      type: 'ACCESSOIRE — SCHOUDER', sets: 3, reps: '12-15', alt: { name: 'Cable Lateral Raise',  reason: 'Spanning onderaan — dumbbells zijn makkelijker aan de top. Combineer beide.' }},
+  }
+};
+
+const weekSchedule = {
+  1:['A','B','A'], 2:['B','A','B'], 3:['A','B','A'], 4:['B','A','B'],
+  5:['A','B','A'], 6:['B','A','B'], 7:['A','B','A']
+};
+
+const sessionDef = {
+  A: { label:'SESSIE A', subtitle:'Squat · Bench · Row',      compound:['squat','bench','row'],     accessory:['curl','tricep','facepull'] },
+  B: { label:'SESSIE B', subtitle:'Squat · OHP · Deadlift',   compound:['squat','ohp','deadlift'],  accessory:['facepull','lateralraise','core'] }
+};
+
+// ── STATE ──
+let state = { currentWeek:1, currentSession:0, logs:[] };
+
+function storageKey() { return USERS[currentUser].key; }
+function isMathieu() { return currentUser === 'mathieu'; }
+function mc(cls) { return isMathieu() ? cls + ' mathieu' : cls; }
+
+function loadState() {
+  try {
+    const s = localStorage.getItem(storageKey());
+    if (s) state = JSON.parse(s);
+    else state = { currentWeek:1, currentSession:0, logs:[] };
+  } catch(e) { state = { currentWeek:1, currentSession:0, logs:[] }; }
+}
+function saveState() { localStorage.setItem(storageKey(), JSON.stringify(state)); }
+
+function getLogCount(userId) {
+  try {
+    const s = localStorage.getItem(USERS[userId].key);
+    if (!s) return 0;
+    const d = JSON.parse(s);
+    return d.logs ? d.logs.length : 0;
+  } catch(e) { return 0; }
+}
+
+// ── USER SELECTION ──
+function selectUser(userId) {
+  currentUser = userId;
+  loadState();
+  document.getElementById('profileScreen').classList.add('hidden');
+  document.getElementById('mainApp').style.display = 'block';
+  updateUserTheme();
+  render();
+}
+
+function switchUser() {
+  saveState();
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('profileScreen').classList.remove('hidden');
+  updateProfileCounts();
+  currentUser = null;
+}
+
+function updateUserTheme() {
+  const u = USERS[currentUser];
+  const m = isMathieu();
+  document.getElementById('headerTitle').className = 'header-title' + (m ? ' mathieu' : '');
+  document.getElementById('headerTitle').textContent = '7 WEKEN KRACHT';
+  document.getElementById('headerSub').textContent = u.name + ' — FULL BODY 3×/WEEK';
+  document.getElementById('currentWeekBadge').className = m ? 'week-badge mathieu' : 'week-badge';
+  document.getElementById('progressFill').className = m ? 'progress-bar-fill mathieu' : 'progress-bar-fill';
+  document.getElementById('logTitle').textContent = 'LOGBOEK — ' + u.name;
+  document.getElementById('toast').className = m ? 'toast mathieu' : 'toast';
+}
+
+function updateProfileCounts() {
+  document.getElementById('countGauthier').textContent = getLogCount('gauthier') + ' sessies gelogd';
+  document.getElementById('countMathieu').textContent  = getLogCount('mathieu')  + ' sessies gelogd';
+}
+
+// ── HELPERS ──
+function getSessionType(week, idx) { return weekSchedule[week][idx]; }
+function getLog(week, sessionIdx) { return state.logs.find(l => l.week===week && l.sessionIndex===sessionIdx) || null; }
+function countLoggedSessions() { return state.logs.length; }
+
+// ── RENDER WEEK NAV ──
+function renderWeekNav() {
+  const nav = document.getElementById('weekNav');
+  nav.innerHTML = '';
+  for (let w=1; w<=7; w++) {
+    const btn = document.createElement('button');
+    const hasLog = state.logs.some(l => l.week===w);
+    let cls = 'week-btn';
+    if (w === state.currentWeek) cls += ' active' + (isMathieu() ? ' mathieu' : '');
+    else if (hasLog) cls += ' has-log' + (isMathieu() ? ' mathieu' : '');
+    btn.className = cls;
+    btn.textContent = `WK ${w}`;
+    btn.onclick = () => { state.currentWeek=w; state.currentSession=0; render(); };
+    nav.appendChild(btn);
+  }
+  document.getElementById('currentWeekBadge').textContent = `WEEK ${state.currentWeek}`;
+}
+
+// ── RENDER PHASE ──
+function renderPhase() {
+  const p = phases[state.currentWeek];
+  const lbl = document.getElementById('phaseLabel');
+  const banner = document.getElementById('phaseBanner');
+  lbl.textContent = p.label;
+  lbl.className = isMathieu() ? 'phase-label mathieu' : 'phase-label';
+  banner.className = isMathieu() ? 'phase-banner mathieu' : 'phase-banner';
+  document.getElementById('phaseDesc').textContent = p.desc;
+}
+
+// ── RENDER SESSION TABS ──
+function renderSessionTabs() {
+  const tabs = document.getElementById('sessionTabs');
+  tabs.innerHTML = '';
+  weekSchedule[state.currentWeek].forEach((type, idx) => {
+    const btn = document.createElement('button');
+    const logged = !!getLog(state.currentWeek, idx);
+    const active = idx === state.currentSession;
+    let cls = 'session-tab';
+    if (active) cls += ' active' + (isMathieu() ? ' mathieu' : '');
+    if (logged) cls += ' logged' + (isMathieu() ? ' mathieu' : '');
+    btn.className = cls;
+    btn.textContent = `${type}${idx+1}`;
+    btn.onclick = () => { state.currentSession=idx; renderSessionContent(); renderSessionTabs(); };
+    tabs.appendChild(btn);
+  });
+}
+
+// ── RENDER SESSION CONTENT ──
+function renderSessionContent() {
+  const container = document.getElementById('sessionContent');
+  const week = state.currentWeek;
+  const idx = state.currentSession;
+  const type = getSessionType(week, idx);
+  const def = sessionDef[type];
+  const existing = getLog(week, idx);
+  const allKeys = [...def.compound, ...def.accessory];
+  const m = isMathieu();
+
+  let html = `<div class="section-divider">COMPOUND</div>`;
+  let sectionSwitch = false;
+
+  allKeys.forEach((key, ki) => {
+    if (!sectionSwitch && ki >= def.compound.length) {
+      html += `<div class="section-divider" style="margin-top:8px">ACCESSOIRE</div>`;
+      sectionSwitch = true;
+    }
+    const ex = exercises.compound[key] || exercises.accessory[key];
+    const numSets = ex.sets;
+    let savedSets = [];
+    if (existing) {
+      const savedEx = existing.exercises.find(e => e.key===key);
+      if (savedEx) savedSets = savedEx.sets;
+    }
+    const badgeCls = m ? 'exercise-badge mathieu' : 'exercise-badge';
+    html += `<div class="exercise-card" id="card_${key}">
+      <div class="exercise-header" onclick="toggleCard('${key}')">
+        <div class="exercise-meta">
+          <div class="exercise-name">${ex.name}</div>
+          <div class="exercise-type">${ex.type}</div>
+        </div>
+        <div class="${badgeCls}">${numSets}×${ex.reps}</div>
+        <div class="exercise-toggle" id="toggle_${key}">▾</div>
+      </div>
+      <div class="sets-log" id="sets_${key}">
+        <div class="sets-grid">
+          <div class="sets-grid-header">SET</div>
+          <div class="sets-grid-header">KG</div>
+          <div class="sets-grid-header">REPS</div>
+          <div class="sets-grid-header">✓</div>
+          ${Array.from({length: numSets}, (_,si) => {
+            const s = savedSets[si] || {};
+            const inputCls = m ? 'set-input mathieu' : 'set-input';
+            const doneCls = 'set-done-btn' + (s.done ? ' done' : '') + (m ? ' mathieu' : '');
+            return `<div class="set-num">${si+1}</div>
+            <input class="${inputCls}" type="number" min="0" step="0.5" placeholder="kg" value="${s.kg||''}" inputmode="decimal" data-key="${key}" data-si="${si}" data-field="kg" onchange="updateSet(this)">
+            <input class="${inputCls}" type="number" min="0" step="1" placeholder="reps" value="${s.reps||''}" inputmode="numeric" data-key="${key}" data-si="${si}" data-field="reps" onchange="updateSet(this)">
+            <button class="${doneCls}" id="done_${key}_${si}" onclick="toggleDone('${key}',${si})">✓</button>`;
+          }).join('')}
+        </div>
+        <button class="alt-toggle" onclick="toggleAlt('${key}')">▸ ALTERNATIEF — GYM BEZET?</button>
+        <div class="alt-content" id="alt_${key}">
+          <div class="alt-name">${ex.alt.name}</div>
+          <div class="alt-reason">${ex.alt.reason}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  const savedNotes = existing ? existing.notes : '';
+  const notesCls = m ? 'notes-input mathieu' : 'notes-input';
+  html += `<div class="session-notes">
+    <div class="notes-label">SESSIENOTA'S</div>
+    <textarea class="${notesCls}" id="sessionNotes" placeholder="Hoe was de sessie? Gewichten, gevoel, opvallende dingen...">${savedNotes}</textarea>
+  </div>`;
+
+  const saveCls = 'save-btn' + (existing ? ' saved' : '') + (m ? ' mathieu' : '');
+  html += `<button class="${saveCls}" id="saveBtn" onclick="saveSession()">${existing ? '✓ OPGESLAGEN — OPNIEUW OPSLAAN' : 'SESSIE OPSLAAN'}</button>`;
+
+  container.innerHTML = html;
+}
+
+// ── INTERACTIONS ──
+function toggleCard(key) {
+  document.getElementById(`sets_${key}`).classList.toggle('open');
+  document.getElementById(`toggle_${key}`).classList.toggle('open');
+}
+function toggleAlt(key) { document.getElementById(`alt_${key}`).classList.toggle('open'); }
+function updateSet(el) { /* inputs read directly on save */ }
+function toggleDone(key, si) {
+  const btn = document.getElementById(`done_${key}_${si}`);
+  btn.classList.toggle('done');
+  if (isMathieu()) btn.classList.toggle('mathieu', btn.classList.contains('done') || true);
+}
+
+function saveSession() {
+  const week = state.currentWeek;
+  const idx = state.currentSession;
+  const type = getSessionType(week, idx);
+  const def = sessionDef[type];
+  const allKeys = [...def.compound, ...def.accessory];
+
+  const exercisesData = allKeys.map(key => {
+    const ex = exercises.compound[key] || exercises.accessory[key];
+    const sets = Array.from({length: ex.sets}, (_,si) => {
+      const kgEl   = document.querySelector(`input[data-key="${key}"][data-si="${si}"][data-field="kg"]`);
+      const repsEl = document.querySelector(`input[data-key="${key}"][data-si="${si}"][data-field="reps"]`);
+      const doneBtn = document.getElementById(`done_${key}_${si}`);
+      return { kg: kgEl?kgEl.value:'', reps: repsEl?repsEl.value:'', done: doneBtn?doneBtn.classList.contains('done'):false };
+    });
+    return { key, name: ex.name, sets };
+  });
+
+  const notes = document.getElementById('sessionNotes').value;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('nl-BE',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + now.toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'});
+
+  state.logs = state.logs.filter(l => !(l.week===week && l.sessionIndex===idx));
+  state.logs.unshift({ id: Date.now(), week, sessionIndex:idx, type, date:dateStr, exercises:exercisesData, notes });
+
+  saveState();
+  showToast('SESSIE OPGESLAGEN');
+
+  const btn = document.getElementById('saveBtn');
+  btn.textContent = '✓ OPGESLAGEN — OPNIEUW OPSLAAN';
+  btn.classList.add('saved');
+
+  renderWeekNav();
+  renderSessionTabs();
+  renderProgressBar();
+  renderLogHistory();
+}
+
+// ── PROGRESS ──
+function renderProgressBar() {
+  const done = countLoggedSessions();
+  const pct = Math.min(100, Math.round(done/21*100));
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `${done} / 21 sessies`;
+}
+
+// ── LOG HISTORY ──
+function renderLogHistory() {
+  const container = document.getElementById('logHistory');
+  if (!state.logs.length) { container.innerHTML = '<div class="empty-log">Nog geen sessies gelogd.</div>'; return; }
+  const sorted = [...state.logs].sort((a,b) => b.id-a.id);
+  const m = isMathieu();
+  container.innerHTML = sorted.map(log => {
+    const exLines = log.exercises.map(ex => {
+      const sum = ex.sets.map(s => (s.kg||s.reps) ? `${s.kg||'?'}kg×${s.reps||'?'}` : null).filter(Boolean).join(', ');
+      return sum ? `<div class="log-exercise"><strong>${ex.name}</strong> — ${sum}</div>` : '';
+    }).join('');
+    const dateCls = m ? 'log-entry-date mathieu' : 'log-entry-date';
+    return `<div class="log-entry">
+      <div class="log-entry-header">
+        <div class="${dateCls}">${log.date}</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <div class="log-entry-session">WK${log.week} · ${log.type}${log.sessionIndex+1}</div>
+          <button class="log-delete" onclick="deleteLog(${log.id})">✕</button>
+        </div>
+      </div>
+      ${exLines}
+      ${log.notes ? `<div class="log-notes-text">${log.notes}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function deleteLog(id) {
+  if (!confirm('Sessie verwijderen?')) return;
+  state.logs = state.logs.filter(l => l.id!==id);
+  saveState();
+  renderWeekNav(); renderSessionTabs(); renderProgressBar(); renderLogHistory(); renderSessionContent();
+  showToast('SESSIE VERWIJDERD');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── MAIN RENDER ──
+function render() {
+  updateUserTheme();
+  renderWeekNav();
+  renderPhase();
+  renderSessionTabs();
+  renderSessionContent();
+  renderProgressBar();
+  renderLogHistory();
+}
+
+// ── INIT ──
+updateProfileCounts();
+</script>
+</body>
+</html>
